@@ -1,0 +1,44 @@
+# Nginx 를 통하지 않으면 접속 불가 하게 만들어 놓음.
+version: '3'
+services:
+    nginx:
+        restart: always
+        build:
+            dockerfile: dev.Dockerfile
+            context: ./Nginx
+        volumes:
+            - ./Nginx/logs:/var/log/nginx
+        ports:
+            - '80:80'
+
+        react-front:
+            build:
+                dockerfile: dev.Dockerfile
+                context: ReactFront
+            env_file:
+                - .env
+            volumes:
+                - ./usr/app/node_modules
+                - ./ReactFront:/usr/app
+            command: ['npm', 'run', 'start']
+
+        node-back:
+            build:
+                dockerfile: dev.Dockerfile
+                context: ./NodeBack
+            env_file:
+                - .env
+            volumes:
+                - ./usr/app/node_modules
+                - ./NodeBack:/usr/app
+            command: ['npm', 'run', 'dev']
+
+        postgres:
+            build:
+                dockerfile: dev.Dockerfile
+                context: ./PostgresDb
+            restart: always
+            env_file:
+                - .env
+            volumes:
+                - ./PostgresDb/dev/data:/var/lib/postgressql/data # 이부분이 없으면 콘테이너 올렸다내려도 사라지지 않음. 
